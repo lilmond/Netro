@@ -157,7 +157,7 @@ class NetroCNC(object):
 
         client_socks = self.bot_hostnames.copy()
 
-        sep1 = 2
+        sep1 = 10
 
         for client_sock in client_socks:
             se1 = len(str(f"{client_socks[client_sock]}"))
@@ -430,7 +430,6 @@ class NetroCNC(object):
                 del running_attacks[attack_id]
         
         return running_attacks
-        
 
 class Colors:
     RED = "\u001b[31;1m"
