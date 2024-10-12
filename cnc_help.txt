@@ -1,0 +1,23 @@
+Command         Description
+
+help            Show this help message.
+
+clear           Clear console logs.
+
+bots            Show the total bots connected.
+
+bot_list        Show connected bots list.
+
+attacks         Show currently running attacks.
+
+launch          Launch an attack. Usage:
+                launch http [URL] [DURATION] [CONCURRENCY]
+                launch tcp [IP:PORT] [DURATION] [CONCURRENCY]
+                launch udp [IP:PORT] [DURATION]
+                The minimum duration for every type of attack is 10,
+                concurrency is 1.
+
+stop            Stop a running attack. Usage:
+                stop [ATTACK ID]
+
+stop_all        Stop all currently running attacks.
