@@ -21,3 +21,5 @@ stop            Stop a running attack. Usage:
                 stop [ATTACK ID]
 
 stop_all        Stop all currently running attacks.
+
+update          Update all connected bots with the local netro_bot.py
