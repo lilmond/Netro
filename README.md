@@ -10,14 +10,18 @@ A centralized Python botnet that currently supports HTTP, TCP and UDP flood atta
 # Proof of concept
 Total bots loaded: 42 (upon doing the attacks)
 
+Layer 7 (HTTP) [500 concurrency]
+
+![image](https://github.com/user-attachments/assets/9963c7a2-c57a-4d19-bed7-af1c610de81c)
+
 Layer 7 (HTTP)
 
 ![image](https://github.com/user-attachments/assets/c8e88017-3b4a-4816-b770-6989cd2696eb)
 
-Layer 4 (UDP Flood)
+Layer 4 (UDP Flood) [50 Gbps dstat]
 
 ![image](https://github.com/user-attachments/assets/dcfd54b2-ba9f-418e-8a79-bfaac592ee3a)
 
-Layer 4 (UDP Flood)
+Layer 4 (UDP Flood) [50 Gbps dstat]
 
 ![image](https://github.com/user-attachments/assets/103b81b7-c75b-4378-ae57-a68208a8cf0a)
