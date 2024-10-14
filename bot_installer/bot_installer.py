@@ -4,18 +4,35 @@ import paramiko
 import threading
 import time
 import sys
+import os
+
+BOT_SERVERS_PATH = "test_servers.txt"
+BOT_PASSWORD_PATH = "bot_password.txt"
+
+NETRO_BOT_PATH = "../netro_bot.py"
+USERAGENTS_PATH = "../useragents.txt"
+BOT_REQUIREMENTS_PATH ="../bot_requirements.txt"
+
+for file in [BOT_SERVERS_PATH, BOT_PASSWORD_PATH, NETRO_BOT_PATH, USERAGENTS_PATH, BOT_REQUIREMENTS_PATH]:
+    if not os.path.exists(file):
+        print(f"Required file not found: {file}")
+        exit()
 
 if sys.platform == "win32":
     paramiko.util.log_to_file("nul")
 elif sys.platform in ["linux", "linux2"]:
     paramiko.util.log_to_file("/dev/null")
 
-with open("bot_servers.txt", "r") as file:
+with open(BOT_SERVERS_PATH, "r") as file:
     hostnames = [x for x in file.read().splitlines() if x.strip() and not x.strip().startswith("#")]
     file.close()
 
-with open("bot_password.txt", "r") as file:
+with open(BOT_PASSWORD_PATH, "r") as file:
     password = file.read()
+    file.close()
+
+with open(BOT_REQUIREMENTS_PATH, "r") as file:
+    bot_requirements = [x for x in file.read().splitlines() if x.strip()]
     file.close()
 
 def server_install(hostname: str):
@@ -45,13 +62,19 @@ def server_install(hostname: str):
             
             sftp_client = ssh_client.open_sftp()
             
-            if not "useragents.txt" in server_files:
-                sftp_client.put("dependencies/useragents.txt", "useragents.txt")
-
             if not "netro_bot.py" in server_files:
-                sftp_client.put("dependencies/netro_bot.py", "netro_bot.py")
+                sftp_client.put(NETRO_BOT_PATH, "netro_bot.py")
+
+            if not "useragents.txt" in server_files:
+                sftp_client.put(USERAGENTS_PATH, "useragents.txt")
             
-            print(f"Dependencies uploaded to {hostname}. Initializing bot...")
+            print(f"Dependencies uploaded to {hostname}. Installing required packages...")
+
+            for package in bot_requirements:
+                stdin, stdout, stderr = ssh_client.exec_command(f"apt install python3-{package} -y")
+                stdout.read()
+            
+            print(f"Required packages installed. Initializing NetroBot at {hostname}...")
 
             ssh_client.exec_command("screen -d -m python3 netro_bot.py")
             ssh_client.close()
