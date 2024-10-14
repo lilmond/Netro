@@ -1,0 +1,4 @@
+# List of your VPS servers.
+
+127.0.0.1
+192.168.254.254
