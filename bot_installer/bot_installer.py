@@ -6,7 +6,7 @@ import time
 import sys
 import os
 
-BOT_SERVERS_PATH = "test_servers.txt"
+BOT_SERVERS_PATH = "bot_servers.txt"
 BOT_PASSWORD_PATH = "bot_password.txt"
 
 NETRO_BOT_PATH = "../netro_bot.py"
