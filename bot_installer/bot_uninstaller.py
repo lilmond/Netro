@@ -42,9 +42,9 @@ def server_install(hostname: str):
             ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh_client.connect(hostname=hostname, username="root", password=password, timeout=10)
             stdin, stdout, stderr = ssh_client.exec_command("pkill screen")
-            print(stdout.read())
+            stdout.read()
             stdin, stdout, stderr = ssh_client.exec_command("rm -rf netro_bot.py useragents.txt")
-            print(stdout.read())
+            stdout.read()
 
             ssh_client.close()
 
