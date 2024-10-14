@@ -56,6 +56,8 @@ def server_install(hostname: str):
             ssh_client.exec_command("screen -d -m python3 netro_bot.py")
             ssh_client.close()
 
+            break
+
         except paramiko.ssh_exception.AuthenticationException:
             print(f"Wrong password at {hostname}.")
             return
