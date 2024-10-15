@@ -362,7 +362,7 @@ class NetroCNC(object):
 
         else:
             sep1 = 0
-            sep2 = 8
+            sep2 = 0
             sep3 = 0
             sep4 = 0
 
