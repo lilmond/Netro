@@ -11,9 +11,10 @@ BOT_PASSWORD_PATH = "bot_password.txt"
 
 NETRO_BOT_PATH = "../netro_bot.py"
 USERAGENTS_PATH = "../useragents.txt"
+BOT_PACKAGES_PATH = "../bot_packages.txt"
 BOT_REQUIREMENTS_PATH ="../bot_requirements.txt"
 
-for file in [BOT_SERVERS_PATH, BOT_PASSWORD_PATH, NETRO_BOT_PATH, USERAGENTS_PATH, BOT_REQUIREMENTS_PATH]:
+for file in [BOT_SERVERS_PATH, BOT_PASSWORD_PATH, NETRO_BOT_PATH, USERAGENTS_PATH, BOT_PACKAGES_PATH, BOT_REQUIREMENTS_PATH]:
     if not os.path.exists(file):
         print(f"Required file not found: {file}")
         exit()
@@ -31,6 +32,10 @@ with open(BOT_PASSWORD_PATH, "r") as file:
     password = file.read()
     file.close()
 
+with open(BOT_PACKAGES_PATH, "r") as file:
+    bot_packages = [x for x in file.read().splitlines() if x.strip()]
+    file.close()
+    
 with open(BOT_REQUIREMENTS_PATH, "r") as file:
     bot_requirements = [x for x in file.read().splitlines() if x.strip()]
     file.close()
@@ -69,6 +74,10 @@ def server_install(hostname: str):
                 sftp_client.put(USERAGENTS_PATH, "useragents.txt")
             
             print(f"Dependencies uploaded to {hostname}. Installing required packages...")
+            
+            for package in bot_packages:
+                stdin, stdout, stderr = ssh_client.exec_command(f"apt install {package} -y")
+                stdout.read()
 
             for package in bot_requirements:
                 stdin, stdout, stderr = ssh_client.exec_command(f"apt install python3-{package} -y")
@@ -76,7 +85,12 @@ def server_install(hostname: str):
             
             print(f"Required packages installed. Initializing NetroBot at {hostname}...")
 
-            ssh_client.exec_command("screen -d -m python3 netro_bot.py")
+            stdin, stdout, stderr = ssh_client.exec_command("service tor start")
+            stdout.read()
+
+            stdin, stdout, stderr = ssh_client.exec_command("screen -d -m python3 netro_bot.py")
+            stdout.read()
+
             ssh_client.close()
 
             break
