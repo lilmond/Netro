@@ -27,7 +27,7 @@ with open(BOT_PASSWORD_PATH, "r") as file:
     password = file.read()
     file.close()
 
-def server_install(hostname: str):
+def server_restart(hostname: str):
     tries = 0
 
     while True:
@@ -74,7 +74,7 @@ def main():
                 time.sleep(0.05)
                 continue
 
-            threading.Thread(target=server_install, args=[hostname], daemon=True).start()
+            threading.Thread(target=server_restart, args=[hostname], daemon=True).start()
             break
 
     while True:
