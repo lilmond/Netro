@@ -10,13 +10,19 @@ bot_list        Show connected bots list.
 
 attacks         Show currently running attacks.
 
+attack          Show an attack information. Usage:
+                attack [ATTACK ID]
+
 launch          Launch an attack. Usage:
                 launch http [URL] [DURATION] [CONCURRENCY]
                 launch http-post [URL] [DURATION] [CONCURRENCY]
-                launch http-tor [URL] [DURATION] [CONCURRENCY]
                 launch hcf [URL] [DURATION] [CONCURRENCY] - HTTP Flood Cloudflare Bypass
+                launch tor-get [URL] [DURATION] [CONCURRENCY]
+                launch tor-post [URL] [DURATION] [CONCURRENCY]
+                launch tor-hcf [URL] [DURATION] [CONCURRENCY]
                 launch tcp [IP:PORT] [DURATION] [CONCURRENCY]
                 launch udp [IP:PORT] [DURATION]
+                
                 The minimum duration for every type of attack is 10,
                 concurrency is 1.
 
