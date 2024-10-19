@@ -1,7 +1,9 @@
 # Netro
 A centralized Python botnet that currently supports HTTP, TCP and UDP flood attacks.
 
-Join my Discord server: (https://discord.gg/Bnf3e8pkyj) if you'd like to ask how to setup this botnet. I also drop free hacking tools there :3
+https://discord.com/invite/Bnf3e8pkyj
+
+follow me for more free hacking tools :3
 
 ![image](https://github.com/user-attachments/assets/3a73bcea-811f-48ee-ad1f-06527944ebf9)
 
