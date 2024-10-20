@@ -20,6 +20,7 @@ launch          Launch an attack. Usage:
                 launch tor-get [URL] [DURATION] [CONCURRENCY]
                 launch tor-post [URL] [DURATION] [CONCURRENCY]
                 launch tor-hcf [URL] [DURATION] [CONCURRENCY]
+                launch tor-tcp [IP:PORT] [DURATION] [CONCURRENCY]
                 launch tcp [IP:PORT] [DURATION] [CONCURRENCY]
                 launch udp [IP:PORT] [DURATION]
                 
