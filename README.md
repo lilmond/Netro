@@ -7,6 +7,11 @@ follow me for more free hacking tools :3
 
 ![image](https://github.com/user-attachments/assets/3a73bcea-811f-48ee-ad1f-06527944ebf9)
 
+# Latest Updates
+- Added Tor-TCP method.
+- Added Tor-HCF method.
+- Added Tor-POST method.
+- Added Tor-GET method.
 
 # PLEASE NOTE
 ## THIS CONTENT IS FOR EDUCATIONAL PURPOSES ONLY, AND SHALL NOT BE USED FOR MALICIOUS PURPOSES. I WILL NOT BE RESPONSIBLE FOR ANYONE WHO WILL MISUSE THIS.
