@@ -2,7 +2,7 @@
 A centralized Python botnet that currently supports HTTP, TCP and UDP flood attacks.
 
 ## Table Of Contents
-- [Requirements](https://github.com/lilmond/Netro/edit/main/README.md#requirements)
+- [Requirements](https://github.com/lilmond/Netro?tab=readme-ov-file#requirements)
 - [Latest Updates](https://github.com/lilmond/Netro/edit/main/README.md#latest-updates)
 - [CNC Installation](https://github.com/lilmond/Netro/edit/main/README.md#cnc-installation)
   - [Windows 10 Source Code Download](https://github.com/lilmond/Netro/edit/main/README.md#for-linux-users)
