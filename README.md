@@ -6,7 +6,7 @@ A centralized Python botnet that currently supports HTTP, TCP and UDP flood atta
 - [Latest Updates](https://github.com/lilmond/Netro?tab=readme-ov-file#latest-updates)
 - [CNC Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#cnc-installation)
   - [Windows 10 Source Code Download](https://github.com/lilmond/Netro?tab=readme-ov-file#for-windows-users)
-  - [Linux Source Code Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#for-linux-users)
+  - [Linux Source Code Download](https://github.com/lilmond/Netro?tab=readme-ov-file#for-linux-users)
   - [Setting Up Configuration](https://github.com/lilmond/Netro?tab=readme-ov-file#setting-configuration)
   - [Preparing The CNC](https://github.com/lilmond/Netro?tab=readme-ov-file#preparing-cnc)
 - [Bot Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#bot-installation)
