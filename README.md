@@ -12,7 +12,7 @@ A centralized Python botnet that currently supports HTTP, TCP and UDP flood atta
 - [Bot Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#bot-installation)
   - [Automatic Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#automatic-installation)
   - [Manual Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#manual-installation)
-  - [Discord / Buy Me A Coffee](https://github.com/lilmond/Netro?tab=readme-ov-file#etc)
+- [Discord / Buy Me A Coffee](https://github.com/lilmond/Netro?tab=readme-ov-file#etc)
 
 ![image](https://github.com/user-attachments/assets/0995d4df-27ab-428d-b548-a3f17e903ae4)
 
