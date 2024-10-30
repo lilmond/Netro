@@ -150,4 +150,4 @@ But if it says 0 for you, then your bots are probably not running. Or there was 
 # Etc
 Discord: https://discord.com/invite/Bnf3e8pkyj
 
-Buy me a coffee: 17nXfqRRiSGDpx1XEh3veHA6gyCLAktFk9
+Buy me a coffee via Bitcoin: 17nXfqRRiSGDpx1XEh3veHA6gyCLAktFk9
