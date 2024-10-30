@@ -3,20 +3,22 @@ A centralized Python botnet that currently supports HTTP, TCP and UDP flood atta
 
 ## Table Of Contents
 - [Requirements](https://github.com/lilmond/Netro?tab=readme-ov-file#requirements)
-- [Latest Updates](https://github.com/lilmond/Netro/edit/main/README.md#latest-updates)
-- [CNC Installation](https://github.com/lilmond/Netro/edit/main/README.md#cnc-installation)
-  - [Windows 10 Source Code Download](https://github.com/lilmond/Netro/edit/main/README.md#for-linux-users)
-  - [Linux Source Code Installation](https://github.com/lilmond/Netro/edit/main/README.md#latest-updates)
-  - [Setting Up Configuration](https://github.com/lilmond/Netro/edit/main/README.md#setting-configuration)
-  - [Preparing The CNC](https://github.com/lilmond/Netro/edit/main/README.md#preparing-cnc)
-- [Bot Installation](https://github.com/lilmond/Netro/edit/main/README.md#bot-installation)
+- [Latest Updates](https://github.com/lilmond/Netro?tab=readme-ov-file#latest-updates)
+- [CNC Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#cnc-installation)
+  - [Windows 10 Source Code Download](https://github.com/lilmond/Netro?tab=readme-ov-file#for-windows-users)
+  - [Linux Source Code Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#for-linux-users)
+  - [Setting Up Configuration](https://github.com/lilmond/Netro?tab=readme-ov-file#setting-configuration)
+  - [Preparing The CNC](https://github.com/lilmond/Netro?tab=readme-ov-file#preparing-cnc)
+- [Bot Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#bot-installation)
+  - [Automatic Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#automatic-installation)
+  - [Manual Installation](https://github.com/lilmond/Netro?tab=readme-ov-file#manual-installation)
 
 ![image](https://github.com/user-attachments/assets/0995d4df-27ab-428d-b548-a3f17e903ae4)
 
 
 # Requirements
 - 1 VPS for CNC (please prefer a high-end)
-- 1 or as many as you want **Ubuntu 24.04** VPS to deploy some bots.
+- 1 or as many as you want **Ubuntu 24.04** VPS to deploy some bots. Note that they all must have the same password for the [automatic installation method](https://github.com/lilmond/Netro?tab=readme-ov-file#automatic-installation).
 - Basic understanding in coding.
 
 # Latest Updates
@@ -78,6 +80,21 @@ Great, now that you have the CNC server, you can jump into deploying the bots.
 # Bot Installation
 There are two methods to install the bot, either automatically or manually.
 
+## Automatic Installation
+In your computer files, open the bot_installer folder or **cd** into it:
+```bash
+cd ./bot_installer
+```
+
+Edit **bot_servers.txt**, write down the IP address of the VPS you're droplying the bot into.
+
+Edit **bot_password.txt**, write down the password of your bot. Your bot servers must have the same passwords.
+
+Run **bot_installer.py**:
+````bash
+python3 bot_installer.py
+````
+
 ## Manual Installation
 
 Log into your bot VPS and install the required componants by executing the following commands:
@@ -126,7 +143,7 @@ And finally, you may go back to your CNC server and check if your bots have succ
 
 Note that it's 0 in the example shown above because I am not running any bots right now.
 
-But if it says 0 to you, then your bots are probably not running. Or there was a mistake in the bot's server **cnc_config.json**
+But if it says 0 for you, then your bots are probably not running. Or there was a mistake in the bot's server **cnc_config.json**
 
 
 # Etc
