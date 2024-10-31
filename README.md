@@ -89,7 +89,7 @@ cd ./bot_installer
 
 Edit **bot_servers.txt**, write down the IP address of the VPS you're deploying the bot into.
 
-Edit **bot_password.txt**, write down the password of your bot. Your bot servers must have the same passwords.
+Edit **bot_password.txt**, write down the password of your VPS. Your servers must have the same password if you're doing this on multiple servers.
 
 Run **bot_installer.py**:
 ````bash
