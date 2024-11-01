@@ -97,54 +97,23 @@ python3 bot_installer.py
 ````
 
 ## Manual Installation
-
-Log into your bot VPS and install the required componants by executing the following commands:
+Log into your SSH server and execute the following commands:
 ```bash
-sudo apt install git -y
-sudo apt install python3.12-venv -y
-sudo apt install python3-pip -y
+# Edit your CNC IP here
+echo '{"IP": "53.63.182.235", "PORT": 4444}' > cnc_config.json
+
+curl https://raw.githubusercontent.com/lilmond/Netro/refs/heads/main/netro_bot.py > netro_bot.py
+curl https://raw.githubusercontent.com/lilmond/Netro/refs/heads/main/useragents.txt > useragents.txt
+curl https://raw.githubusercontent.com/lilmond/Netro/refs/heads/main/bot_manual_requirements.txt > bot_manual_requirements.txt
+sudo apt update -y && sudo apt upgrade -y
 sudo apt install tor -y
-```
-
-You may then upload **netro_bot.py**, **cnc_config.json** and **bot_manual_requirements.txt** into the bot server. Either with **scp** or **MobaXterm**'s server file manager.
-
-And finally, run the commands below to deploy the bot.
-
-```
+sudo apt install python3.12-venv -y
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-screen -d -m python3 netro_bot.py
+pip install -r bot_manual_requirements.txt
+sudo service tor start
+screen -d -m python netro_bot.py
 ```
-
-Check it is running using
-```
-screen -ls
-```
-
-"There is a screen on:" indicates that it is running.
-
-![image](https://github.com/user-attachments/assets/3d676192-aa7e-4f42-8a7f-f39fe3250399)
-
-"No Sockets found in..." indicates that there was an error running the script.
-
-![image](https://github.com/user-attachments/assets/bdbd9535-a7f7-459d-8868-f92f9bb518a3)
-
-If you come across with this issue. You may submit an issue on my GitHub repository page at https://github.com/lilmond/Netro/issues and I can help. Please don't forget to submit an error log by running the script normally using the follow command:
-
-```bash
-python netro_bot.py
-```
-
-You may however do a bit of experiment and try to fix it yourself.
-
-And finally, you may go back to your CNC server and check if your bots have successfully connected. I will show an example below.
-
-![image](https://github.com/user-attachments/assets/6d70d786-ca71-43fc-b480-42576fdb9da9)
-
-Note that it's 0 in the example shown above because I am not running any bots right now.
-
-But if it says 0 for you, then your bots are probably not running. Or there was a mistake in the bot's server **cnc_config.json**
 
 
 # Etc
