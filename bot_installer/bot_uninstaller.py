@@ -43,7 +43,7 @@ def server_install(hostname: str):
             ssh_client.connect(hostname=hostname, username="root", password=password, timeout=10)
             stdin, stdout, stderr = ssh_client.exec_command("pkill screen")
             stdout.read()
-            stdin, stdout, stderr = ssh_client.exec_command("rm -rf netro_bot.py useragents.txt")
+            stdin, stdout, stderr = ssh_client.exec_command("rm -rf netro_bot.py cnc_config.json useragents.txt")
             stdout.read()
 
             ssh_client.close()
