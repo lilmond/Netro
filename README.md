@@ -29,6 +29,7 @@ Some powerproof (1m hrs capped):
 - Basic understanding in coding.
 
 # Latest Updates
+- Multiple bot instances to use more available resources.
 - Added Tor-TCP, Tor-HCF, Tor-POST and Tor-GET method.
 
 
