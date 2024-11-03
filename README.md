@@ -17,11 +17,9 @@ A centralized Python botnet that currently supports HTTP, TCP and UDP flood atta
 
 ![image](https://github.com/user-attachments/assets/0995d4df-27ab-428d-b548-a3f17e903ae4)
 
-Some powerproof (500k HRS capped) (tor-get method):
+Some powerproof (1m hrs capped):
 
-![image](https://github.com/user-attachments/assets/e0bc49db-270d-45a4-b6c9-2b7b3b4f9bee)
-
-
+![image](https://github.com/user-attachments/assets/4b6cbeee-9dcb-4fd1-ad9e-4b74b4bc62ea)
 
 
 # Requirements
