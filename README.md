@@ -1,5 +1,6 @@
 # Netro
-A centralized Python botnet that currently supports HTTP, TCP and UDP flood attacks.
+An EXPERIMENTAL centralized Python botnet that currently supports HTTP, TCP and UDP flood attacks.
+
 
 ## Table Of Contents
 - [Requirements](https://github.com/lilmond/Netro?tab=readme-ov-file#requirements)
